@@ -4,7 +4,7 @@ import { faGithub } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { useParams, usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAppData } from "../hooks/useAppData";
 import { AboutSection } from "./AboutSection";
 import { LinkButton } from "./Button/LinkButton";
@@ -19,7 +19,10 @@ export const Sidebar = () => {
 
   const { languages, tags } = useAppData();
 
-  // State variable to track whether the user has scrolled to a minimum height of 702 pixels vertically.
+  // Memoize languages and tags to avoid unnecessary re-renders
+  const memoizedLanguages = useMemo(() => languages, [languages]);
+  const memoizedTags = useMemo(() => tags, [tags]);
+
   const [scrollHeightReached, setScrollHeightReached] = useState(false);
   const [showUpArrow, setShowUpArrow] = useState(false);
 
@@ -30,21 +33,17 @@ export const Sidebar = () => {
       scrollTarget?.scrollIntoView({ behavior: "smooth" });
     }
 
-    // Handle scroll events and set "scrollHeightReached" & "showUpArrow" to True,  when the user scrolls to 702 pixels vertically.
     const handleScroll = () => {
       setScrollHeightReached(window.scrollY >= 702);
       setShowUpArrow(window.scrollY > 702);
     };
 
-    // Add the scroll event listener
     window.addEventListener("scroll", handleScroll);
-
-    // Remove the scroll event listener when the component unmounts
     return () => window.removeEventListener("scroll", handleScroll);
   }, [pageType]);
 
-  // Function to scroll to the top of the page
-  const handleScrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
+  const handleScrollToTop = () =>
+    window.scrollTo({ top: 0, behavior: "smooth" });
 
   return (
     <section
@@ -54,7 +53,11 @@ export const Sidebar = () => {
     >
       <AboutSection />
       <div className="pt-4">
-        <LinkButton title="Star it on GitHub" href="https://github.com/lucavallin/verto" secondary>
+        <LinkButton
+          title="Star it on GitHub"
+          href="https://github.com/lucavallin/verto"
+          secondary
+        >
           <FontAwesomeIcon icon={faGithub} className="mr-2" />
           Star it on GitHub 🌟
         </LinkButton>
@@ -74,11 +77,15 @@ export const Sidebar = () => {
         }`}
       >
         <LanguagePicker
-          languages={languages}
+          languages={memoizedLanguages}
           activeTagId={activeLanguageId}
           onLanguagePage={pageType == "language"}
         />
-        <TagPicker tags={tags} activeTagId={activeTagId} onTagPage={pageType == "tag"} />
+        <TagPicker
+          tags={memoizedTags}
+          activeTagId={activeTagId}
+          onTagPage={pageType == "tag"}
+        />
       </div>
       {showUpArrow && <ScrollToTop handleOnClick={handleScrollToTop} />}
     </section>

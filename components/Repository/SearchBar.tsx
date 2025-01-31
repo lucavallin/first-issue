@@ -1,17 +1,22 @@
-// searchbar.tsx
+"use client";
+
 import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useAppData } from "../../hooks/useAppData";
 
 export const SearchBar = () => {
   const [query, setQuery] = useState("");
   const { filterRepositoriesByQuery } = useAppData();
 
-  const handleSearch = (searchQuery: string) => {
-    setQuery(searchQuery);
-    filterRepositoriesByQuery(searchQuery);
-  };
+  // Memoize the handleSearch function to avoid re-creating it on every render
+  const handleSearch = useCallback(
+    (searchQuery: string) => {
+      setQuery(searchQuery);
+      filterRepositoriesByQuery(searchQuery);
+    },
+    [filterRepositoriesByQuery]
+  );
 
   return (
     <div className="relative mt-4 flex rounded-md">

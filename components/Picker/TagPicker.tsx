@@ -1,6 +1,6 @@
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { CountableTag } from "../../types";
 import { ShowMoreButton } from "../Button/ShowMoreButton";
 import { SectionTitle } from "../SectionTitle";
@@ -28,16 +28,22 @@ export const TagPicker = ({ tags, activeTagId, onTagPage }: TagPickerProps) => {
     setIsCollapsed(true);
   }, [activeTagId]);
 
-  const toggleCollapsible = () => {
-    setIsCollapsed(!isCollapsed);
-  };
+  // Memoize the tags array to avoid unnecessary recalculations on each render
+  const memoizedTags = useMemo(() => tags, [tags]);
 
-  const handleShowMore = () => {
-    setLimit((limit) => limit + limitStep);
-  };
-  const handleShowLess = () => {
+  // Memoize the toggleCollapsible function to avoid unnecessary recreation
+  const toggleCollapsible = useCallback(() => {
+    setIsCollapsed((prev) => !prev);
+  }, []);
+
+  // Memoize the showMore and showLess handlers
+  const handleShowMore = useCallback(() => {
+    setLimit((prev) => prev + limitStep);
+  }, [limitStep]);
+
+  const handleShowLess = useCallback(() => {
     setLimit(limitStep);
-  };
+  }, [limitStep]);
 
   return (
     <div className="pt-6">
@@ -65,13 +71,13 @@ export const TagPicker = ({ tags, activeTagId, onTagPage }: TagPickerProps) => {
         {activeTagId && isCollapsed && <ActiveTagButton data={activeTagId} />}
       </div>
       <div
-        className={` ${
+        className={`${
           isShowLessVisible && "overflow-y-scroll"
         } overflow-hidden duration-300 ease-in-out md:max-h-[50dvh] ${
           isCollapsed ? "max-h-0" : "max-h-96"
         } ${isCollapsed ? "sm:max-h-full" : ""}`}
       >
-        {tags.slice(0, limit).map((tag) => {
+        {memoizedTags.slice(0, limit).map((tag) => {
           return (
             <PickerItem
               className={`group m-1 inline-block rounded-sm border px-2 py-1 text-sm ${
